@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Naming Checker - Similarity Test UI</title>
+    <style>
+      :root {
+        --bg: #f5f6f8;
+        --surface: #ffffff;
+        --surface-soft: #f8f9fb;
+        --text: #101828;
+        --muted: #475467;
+        --border: #e4e7ec;
+        --accent: #155eef;
+        --accent-soft: #eff4ff;
+        --danger: #b42318;
+        --ok: #027a48;
+        --shadow: 0 12px 32px rgba(16, 24, 40, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: radial-gradient(circle at top right, #eef4ff, transparent 30%), var(--bg);
+        color: var(--text);
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+
+      .page {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 32px 20px 48px;
+      }
+
+      .header {
+        margin-bottom: 24px;
+      }
+
+      .title {
+        margin: 0;
+        font-size: 28px;
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+      }
+
+      .subtitle {
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+      }
+
+      .tab-bar {
+        display: inline-flex;
+        gap: 6px;
+        padding: 6px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        margin-bottom: 16px;
+      }
+
+      .tab-btn {
+        background: transparent;
+        color: var(--muted);
+        border: 0;
+        border-radius: 8px;
+        padding: 8px 12px;
+      }
+
+      .tab-btn.active {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 14px;
+        padding: 18px;
+      }
+
+      @media (min-width: 900px) {
+        .form-grid {
+          grid-template-columns: 1.4fr 0.8fr 0.5fr 0.5fr;
+          align-items: end;
+        }
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      input[type="text"],
+      input[type="number"] {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 14px;
+        color: var(--text);
+        background: var(--surface);
+      }
+
+      input:focus {
+        outline: 2px solid var(--accent-soft);
+        border-color: var(--accent);
+      }
+
+      .dropzone {
+        border: 1px dashed #b7bdc8;
+        border-radius: 12px;
+        background: var(--surface-soft);
+        padding: 12px;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 12px;
+        align-items: center;
+        cursor: pointer;
+        transition: 0.18s ease;
+      }
+
+      .dropzone:hover,
+      .dropzone.drag-over {
+        border-color: var(--accent);
+        background: #f0f5ff;
+      }
+
+      .preview {
+        width: 72px;
+        height: 72px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        object-fit: contain;
+        background: white;
+      }
+
+      .drop-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .drop-main {
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .drop-sub {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .controls {
+        display: flex;
+        gap: 8px;
+      }
+
+      button {
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: white;
+      }
+
+      .btn-primary:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+
+      .btn-secondary {
+        background: #eef2f6;
+        color: var(--text);
+      }
+
+      .status {
+        margin-top: 14px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      .status.error {
+        color: var(--danger);
+      }
+
+      .status.ok {
+        color: var(--ok);
+      }
+
+      .results {
+        margin-top: 18px;
+      }
+
+      .result-head {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: baseline;
+        margin-bottom: 10px;
+      }
+
+      .result-title {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .meta {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .table-wrap {
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: white;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 820px;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        text-align: left;
+        border-bottom: 1px solid #eef1f4;
+        font-size: 14px;
+      }
+
+      th {
+        position: sticky;
+        top: 0;
+        background: #f9fafb;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+      }
+
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 13px;
+      }
+
+      .thumb-cell {
+        width: 70px;
+      }
+
+      .thumb {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: #f4f6fa;
+        object-fit: cover;
+        cursor: zoom-in;
+      }
+
+      .thumb-empty {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        border: 1px dashed #c7cdd8;
+        color: #98a2b3;
+        display: grid;
+        place-items: center;
+        font-size: 10px;
+      }
+
+      .hover-preview {
+        position: fixed;
+        z-index: 1000;
+        width: 220px;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        padding: 8px;
+        pointer-events: none;
+      }
+
+      .hover-preview img {
+        display: block;
+        width: 100%;
+        height: 160px;
+        object-fit: contain;
+        border-radius: 8px;
+        background: #f8fafc;
+      }
+
+      .hover-preview p {
+        margin: 6px 0 0;
+        font-size: 11px;
+        color: var(--muted);
+        word-break: break-all;
+      }
+
+      .json-box {
+        margin-top: 16px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #0b1020;
+        color: #d0d7e7;
+        padding: 12px;
+      }
+
+      pre {
+        margin: 0;
+        max-height: 260px;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="header">
+        <h1 class="title">Similarity Test UI</h1>
+        <p class="subtitle">
+          Manual UI for both logo and text similarity search (up to 200 matches).
+        </p>
+      </header>
+
+      <div class="tab-bar" role="tablist" aria-label="Search mode">
+        <button id="tab-logo-btn" class="tab-btn active" type="button" data-tab="logo" role="tab">
+          Logo
+        </button>
+        <button id="tab-text-btn" class="tab-btn" type="button" data-tab="text" role="tab">
+          Text
+        </button>
+      </div>
+
+      <section id="tab-logo" class="tab-content active">
+      <section class="panel">
+        <form id="search-form" class="form-grid">
+          <div class="field">
+            <label class="label">Image</label>
+            <input id="file-input" type="file" accept="image/*" hidden />
+            <label id="dropzone" class="dropzone" for="file-input">
+              <img id="preview" class="preview" alt="Preview" />
+              <span class="drop-copy">
+                <span class="drop-main" id="file-name">Choose file or drop it here</span>
+                <span class="drop-sub">PNG, JPG, WEBP, SVG (any image accepted by backend)</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="field">
+            <label for="base-url" class="label">Base URL</label>
+            <input id="base-url" type="text" value="http://45.91.236.105:8000" />
+          </div>
+
+          <div class="field">
+            <label for="top-k" class="label">Top K</label>
+            <input id="top-k" type="number" min="1" max="200" step="1" value="200" />
+          </div>
+
+          <div class="field">
+            <label class="label">Actions</label>
+            <div class="controls">
+              <button id="run-btn" class="btn-primary" type="submit">Run Search</button>
+              <button id="clear-btn" class="btn-secondary" type="button">Clear</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <p id="status" class="status">Ready.</p>
+
+      <section class="results" id="results" hidden>
+        <div class="result-head">
+          <h2 class="result-title">Matches</h2>
+          <span class="meta" id="results-meta"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Preview</th>
+                <th>Similarity %</th>
+                <th>Cosine</th>
+                <th>Logo Path</th>
+              </tr>
+            </thead>
+            <tbody id="results-body"></tbody>
+          </table>
+        </div>
+
+        <div class="result-head" style="margin-top: 14px">
+          <h2 class="result-title">Raw JSON</h2>
+          <button id="copy-json-btn" class="btn-secondary" type="button">Copy JSON</button>
+        </div>
+        <div class="json-box">
+          <pre id="raw-json">No response yet.</pre>
+        </div>
+      </section>
+      </section>
+
+      <section id="tab-text" class="tab-content">
+      <header class="header" style="margin-top: 0">
+        <h1 class="title" style="font-size: 24px">Text Similarity Test</h1>
+        <p class="subtitle">
+          Search similar names by query text, optional MKTU filters, and top-K limit.
+        </p>
+      </header>
+
+      <section class="panel">
+        <form id="text-search-form" class="form-grid">
+          <div class="field">
+            <label for="text-query" class="label">Query</label>
+            <input id="text-query" type="text" placeholder="EUROPLEX" />
+          </div>
+
+          <div class="field">
+            <label for="text-base-url" class="label">Base URL</label>
+            <input id="text-base-url" type="text" value="http://45.91.236.105:8000" />
+          </div>
+
+          <div class="field">
+            <label for="text-top-k" class="label">Top K</label>
+            <input id="text-top-k" type="number" min="1" max="200" step="1" value="200" />
+          </div>
+
+          <div class="field">
+            <label class="label">Actions</label>
+            <div class="controls">
+              <button id="text-run-btn" class="btn-primary" type="submit">Run Search</button>
+              <button id="text-clear-btn" class="btn-secondary" type="button">Clear</button>
+            </div>
+          </div>
+
+          <div class="field" style="grid-column: 1 / -1">
+            <label for="text-mktu" class="label">MKTU Codes (optional)</label>
+            <input id="text-mktu" type="text" placeholder="5, 35" />
+          </div>
+        </form>
+      </section>
+
+      <p id="text-status" class="status">Ready.</p>
+
+      <section class="results" id="text-results" hidden>
+        <div class="result-head">
+          <h2 class="result-title">Text Matches</h2>
+          <span class="meta" id="text-results-meta"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Similarity %</th>
+                <th>Cosine</th>
+                <th>Name</th>
+                <th>MKTU</th>
+                <th>Certificate</th>
+              </tr>
+            </thead>
+            <tbody id="text-results-body"></tbody>
+          </table>
+        </div>
+
+        <div class="result-head" style="margin-top: 14px">
+          <h2 class="result-title">Raw JSON</h2>
+          <button id="text-copy-json-btn" class="btn-secondary" type="button">Copy JSON</button>
+        </div>
+        <div class="json-box">
+          <pre id="text-raw-json">No response yet.</pre>
+        </div>
+      </section>
+      </section>
+    </main>
+
+    <script>
+      const fileInput = document.getElementById("file-input");
+      const dropzone = document.getElementById("dropzone");
+      const preview = document.getElementById("preview");
+      const fileName = document.getElementById("file-name");
+      const baseUrlInput = document.getElementById("base-url");
+      const topKInput = document.getElementById("top-k");
+      const form = document.getElementById("search-form");
+      const runBtn = document.getElementById("run-btn");
+      const clearBtn = document.getElementById("clear-btn");
+      const statusEl = document.getElementById("status");
+      const resultsSection = document.getElementById("results");
+      const resultsMeta = document.getElementById("results-meta");
+      const resultsBody = document.getElementById("results-body");
+      const rawJson = document.getElementById("raw-json");
+      const copyJsonBtn = document.getElementById("copy-json-btn");
+      const tabLogoBtn = document.getElementById("tab-logo-btn");
+      const tabTextBtn = document.getElementById("tab-text-btn");
+      const tabLogo = document.getElementById("tab-logo");
+      const tabText = document.getElementById("tab-text");
+      const textForm = document.getElementById("text-search-form");
+      const textQueryInput = document.getElementById("text-query");
+      const textBaseUrlInput = document.getElementById("text-base-url");
+      const textTopKInput = document.getElementById("text-top-k");
+      const textMktuInput = document.getElementById("text-mktu");
+      const textRunBtn = document.getElementById("text-run-btn");
+      const textClearBtn = document.getElementById("text-clear-btn");
+      const textStatusEl = document.getElementById("text-status");
+      const textResultsSection = document.getElementById("text-results");
+      const textResultsMeta = document.getElementById("text-results-meta");
+      const textResultsBody = document.getElementById("text-results-body");
+      const textRawJson = document.getElementById("text-raw-json");
+      const textCopyJsonBtn = document.getElementById("text-copy-json-btn");
+      const hoverPreview = document.createElement("div");
+      hoverPreview.className = "hover-preview";
+      hoverPreview.hidden = true;
+      hoverPreview.innerHTML = '<img alt="Result preview" /><p></p>';
+      document.body.appendChild(hoverPreview);
+      const hoverPreviewImg = hoverPreview.querySelector("img");
+      const hoverPreviewText = hoverPreview.querySelector("p");
+
+      let selectedFile = null;
+      let latestResponseText = "";
+      let latestTextResponseText = "";
+
+      function setStatus(text, type = "") {
+        statusEl.className = "status" + (type ? " " + type : "");
+        statusEl.textContent = text;
+      }
+
+      function setTextStatus(text, type = "") {
+        textStatusEl.className = "status" + (type ? " " + type : "");
+        textStatusEl.textContent = text;
+      }
+
+      function activateTab(tabName) {
+        const isLogo = tabName === "logo";
+        tabLogo.classList.toggle("active", isLogo);
+        tabText.classList.toggle("active", !isLogo);
+        tabLogoBtn.classList.toggle("active", isLogo);
+        tabTextBtn.classList.toggle("active", !isLogo);
+        tabLogoBtn.setAttribute("aria-selected", isLogo ? "true" : "false");
+        tabTextBtn.setAttribute("aria-selected", isLogo ? "false" : "true");
+        if (!isLogo) hideHoverPreview();
+      }
+
+      function clearPreview() {
+        preview.src =
+          "data:image/svg+xml;charset=utf-8," +
+          encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72"><rect width="72" height="72" fill="#f4f5f7"/><text x="50%" y="52%" text-anchor="middle" fill="#98a2b3" font-size="10" font-family="Arial">preview</text></svg>'
+          );
+      }
+
+      function setFile(file) {
+        selectedFile = file;
+        if (!file) {
+          fileName.textContent = "Choose file or drop it here";
+          clearPreview();
+          return;
+        }
+        fileName.textContent = file.name;
+        const objectUrl = URL.createObjectURL(file);
+        preview.src = objectUrl;
+        preview.onload = () => URL.revokeObjectURL(objectUrl);
+      }
+
+      function parseTopK() {
+        const value = Number.parseInt(topKInput.value, 10);
+        if (!Number.isFinite(value)) return 200;
+        return Math.min(200, Math.max(1, value));
+      }
+
+      function parseTextTopK() {
+        const value = Number.parseInt(textTopKInput.value, 10);
+        if (!Number.isFinite(value)) return 200;
+        return Math.min(200, Math.max(1, value));
+      }
+
+      function renderMatches(payload) {
+        const matches = Array.isArray(payload.matches) ? payload.matches : [];
+        resultsBody.innerHTML = "";
+
+        for (let i = 0; i < matches.length; i += 1) {
+          const item = matches[i];
+          const imageUrl = buildImageUrl(item.logo_path);
+          const tr = document.createElement("tr");
+          const thumbCell = imageUrl
+            ? `<img class="thumb" src="${escapeHtml(imageUrl)}" alt="preview ${i + 1}" data-preview-url="${escapeHtml(
+                imageUrl
+              )}" data-preview-path="${escapeHtml(item.logo_path ?? "")}" onerror="this.outerHTML='<span class=&quot;thumb-empty&quot;>n/a</span>'" />`
+            : '<span class="thumb-empty">n/a</span>';
+          tr.innerHTML = `
+            <td>${i + 1}</td>
+            <td class="thumb-cell">${thumbCell}</td>
+            <td><strong>${formatNumber(item.similarity_percent)}</strong></td>
+            <td>${formatNumber(item.cosine_similarity)}</td>
+            <td class="mono">${escapeHtml(item.logo_path ?? "")}</td>
+          `;
+          resultsBody.appendChild(tr);
+        }
+
+        resultsMeta.textContent = `top_k=${payload.top_k ?? "n/a"} | matches=${matches.length}`;
+        resultsSection.hidden = false;
+      }
+
+      function formatNumber(value) {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return "n/a";
+        return n.toFixed(2);
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function parseMktuCodes(rawValue) {
+        if (!rawValue.trim()) return [];
+        return rawValue
+          .split(",")
+          .map((v) => Number.parseInt(v.trim(), 10))
+          .filter((v) => Number.isFinite(v) && v > 0);
+      }
+
+      function buildImageUrl(logoPath) {
+        if (!logoPath || typeof logoPath !== "string") return "";
+        const trimmedPath = logoPath.trim();
+        if (!trimmedPath) return "";
+        const baseUrl = baseUrlInput.value.trim().replace(/\/+$/, "");
+        if (!baseUrl) return "";
+        return `${baseUrl}/api/v1/logo-similarity/preview?logo_path=${encodeURIComponent(trimmedPath)}`;
+      }
+
+      function syncBaseUrl(source, target) {
+        target.value = source.value;
+      }
+
+      function showHoverPreview(url, logoPath, event) {
+        hoverPreviewImg.src = url;
+        hoverPreviewText.textContent = logoPath || url;
+        hoverPreview.hidden = false;
+        moveHoverPreview(event);
+      }
+
+      function moveHoverPreview(event) {
+        const offsetX = 16;
+        const offsetY = 16;
+        const maxLeft = window.innerWidth - hoverPreview.offsetWidth - 10;
+        const maxTop = window.innerHeight - hoverPreview.offsetHeight - 10;
+        const left = Math.min(maxLeft, event.clientX + offsetX);
+        const top = Math.min(maxTop, event.clientY + offsetY);
+        hoverPreview.style.left = `${Math.max(10, left)}px`;
+        hoverPreview.style.top = `${Math.max(10, top)}px`;
+      }
+
+      function hideHoverPreview() {
+        hoverPreview.hidden = true;
+        hoverPreviewImg.src = "";
+        hoverPreviewText.textContent = "";
+      }
+
+      async function runSearch() {
+        if (!selectedFile) {
+          setStatus("Please select an image first.", "error");
+          return;
+        }
+
+        const baseUrl = baseUrlInput.value.trim().replace(/\/+$/, "");
+        if (!baseUrl) {
+          setStatus("Base URL is required.", "error");
+          return;
+        }
+
+        const topK = parseTopK();
+        topKInput.value = String(topK);
+        const endpoint = `${baseUrl}/api/v1/logo-similarity/search?top_k=${topK}`;
+
+        const data = new FormData();
+        data.append("file", selectedFile);
+
+        runBtn.disabled = true;
+        setStatus(`Sending request to ${endpoint} ...`);
+
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            body: data
+          });
+
+          const responseText = await response.text();
+          latestResponseText = responseText;
+          rawJson.textContent = responseText || "Empty response";
+
+          if (!response.ok) {
+            setStatus(`Request failed: HTTP ${response.status}. Check raw JSON for details.`, "error");
+            resultsSection.hidden = false;
+            resultsBody.innerHTML = "";
+            resultsMeta.textContent = `http_status=${response.status}`;
+            return;
+          }
+
+          let payload;
+          try {
+            payload = JSON.parse(responseText);
+          } catch {
+            setStatus("Response is not valid JSON.", "error");
+            return;
+          }
+
+          renderMatches(payload);
+          setStatus("Search completed successfully.", "ok");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Unknown error";
+          setStatus(`Network or CORS error: ${message}`, "error");
+        } finally {
+          runBtn.disabled = false;
+        }
+      }
+
+      function renderTextMatches(payload) {
+        const matches = Array.isArray(payload.matches) ? payload.matches : [];
+        textResultsBody.innerHTML = "";
+
+        for (let i = 0; i < matches.length; i += 1) {
+          const item = matches[i];
+          const certLink =
+            item.certificate_link && String(item.certificate_link).trim()
+              ? `<a href="${escapeHtml(String(item.certificate_link))}" target="_blank" rel="noopener noreferrer">open</a>`
+              : "n/a";
+          const mktu = Array.isArray(item.mktu_codes) ? item.mktu_codes.join(", ") : "";
+          const name = item.name_display || item.mark_significant || item.name_clean || "";
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${i + 1}</td>
+            <td><strong>${formatNumber(item.similarity_percent)}</strong></td>
+            <td>${formatNumber(item.cosine_similarity)}</td>
+            <td>${escapeHtml(name)}</td>
+            <td>${escapeHtml(mktu)}</td>
+            <td>${certLink}</td>
+          `;
+          textResultsBody.appendChild(tr);
+        }
+
+        textResultsMeta.textContent = `top_k=${payload.top_k ?? "n/a"} | matches=${matches.length}`;
+        textResultsSection.hidden = false;
+      }
+
+      async function runTextSearch() {
+        const query = textQueryInput.value.trim();
+        if (!query) {
+          setTextStatus("Please enter text query.", "error");
+          return;
+        }
+
+        const baseUrl = textBaseUrlInput.value.trim().replace(/\/+$/, "");
+        if (!baseUrl) {
+          setTextStatus("Base URL is required.", "error");
+          return;
+        }
+
+        const topK = parseTextTopK();
+        textTopKInput.value = String(topK);
+        const endpoint = `${baseUrl}/api/v1/text-similarity/search`;
+        const mktuCodes = parseMktuCodes(textMktuInput.value);
+        const payload = {
+          query,
+          mktu_codes: mktuCodes,
+          top_k: topK
+        };
+
+        textRunBtn.disabled = true;
+        setTextStatus(`Sending request to ${endpoint} ...`);
+
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const responseText = await response.text();
+          latestTextResponseText = responseText;
+          textRawJson.textContent = responseText || "Empty response";
+
+          if (!response.ok) {
+            setTextStatus(
+              `Request failed: HTTP ${response.status}. Check raw JSON for details.`,
+              "error"
+            );
+            textResultsSection.hidden = false;
+            textResultsBody.innerHTML = "";
+            textResultsMeta.textContent = `http_status=${response.status}`;
+            return;
+          }
+
+          let parsedPayload;
+          try {
+            parsedPayload = JSON.parse(responseText);
+          } catch {
+            setTextStatus("Response is not valid JSON.", "error");
+            return;
+          }
+
+          renderTextMatches(parsedPayload);
+          setTextStatus("Search completed successfully.", "ok");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Unknown error";
+          setTextStatus(`Network or CORS error: ${message}`, "error");
+        } finally {
+          textRunBtn.disabled = false;
+        }
+      }
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        runSearch();
+      });
+
+      textForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        runTextSearch();
+      });
+
+      tabLogoBtn.addEventListener("click", () => activateTab("logo"));
+      tabTextBtn.addEventListener("click", () => activateTab("text"));
+
+      baseUrlInput.addEventListener("change", () => syncBaseUrl(baseUrlInput, textBaseUrlInput));
+      textBaseUrlInput.addEventListener("change", () => syncBaseUrl(textBaseUrlInput, baseUrlInput));
+
+      fileInput.addEventListener("change", () => {
+        const file = fileInput.files && fileInput.files[0];
+        setFile(file || null);
+      });
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        dropzone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          dropzone.classList.add("drag-over");
+        });
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        dropzone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          dropzone.classList.remove("drag-over");
+        });
+      });
+
+      dropzone.addEventListener("drop", (event) => {
+        const file = event.dataTransfer?.files?.[0];
+        if (file) {
+          fileInput.files = event.dataTransfer.files;
+          setFile(file);
+        }
+      });
+
+      resultsBody.addEventListener("mouseover", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        if (!target.classList.contains("thumb")) return;
+        const url = target.dataset.previewUrl;
+        const logoPath = target.dataset.previewPath || "";
+        if (!url) return;
+        showHoverPreview(url, logoPath, event);
+      });
+
+      resultsBody.addEventListener("mousemove", (event) => {
+        if (!hoverPreview.hidden) moveHoverPreview(event);
+      });
+
+      resultsBody.addEventListener("mouseleave", () => {
+        if (!hoverPreview.hidden) hideHoverPreview();
+      });
+
+      clearBtn.addEventListener("click", () => {
+        fileInput.value = "";
+        setFile(null);
+        latestResponseText = "";
+        rawJson.textContent = "No response yet.";
+        resultsBody.innerHTML = "";
+        resultsMeta.textContent = "";
+        resultsSection.hidden = true;
+        hideHoverPreview();
+        setStatus("Ready.");
+      });
+
+      textClearBtn.addEventListener("click", () => {
+        textQueryInput.value = "";
+        textMktuInput.value = "";
+        textTopKInput.value = "200";
+        latestTextResponseText = "";
+        textRawJson.textContent = "No response yet.";
+        textResultsBody.innerHTML = "";
+        textResultsMeta.textContent = "";
+        textResultsSection.hidden = true;
+        setTextStatus("Ready.");
+      });
+
+      copyJsonBtn.addEventListener("click", async () => {
+        if (!latestResponseText) {
+          setStatus("Nothing to copy yet.", "error");
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(latestResponseText);
+          setStatus("Raw JSON copied to clipboard.", "ok");
+        } catch {
+          setStatus("Could not access clipboard in this browser context.", "error");
+        }
+      });
+
+      textCopyJsonBtn.addEventListener("click", async () => {
+        if (!latestTextResponseText) {
+          setTextStatus("Nothing to copy yet.", "error");
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(latestTextResponseText);
+          setTextStatus("Raw JSON copied to clipboard.", "ok");
+        } catch {
+          setTextStatus("Could not access clipboard in this browser context.", "error");
+        }
+      });
+
+      clearPreview();
+    </script>
+  </body>
+</html>
