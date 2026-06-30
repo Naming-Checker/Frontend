@@ -334,6 +334,91 @@
         word-break: break-all;
       }
 
+
+      .checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 8px;
+      }
+
+      .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--surface-soft);
+        padding: 9px 10px;
+        font-size: 14px;
+        color: var(--text);
+      }
+
+      .checkbox-item input {
+        accent-color: var(--accent);
+      }
+
+      .job-line {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--surface-soft);
+        padding: 4px 8px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .source-grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .source-card {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: white;
+        overflow: hidden;
+      }
+
+      .source-card-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: baseline;
+        padding: 12px 14px;
+        background: #f9fafb;
+        border-bottom: 1px solid #eef1f4;
+      }
+
+      .source-title {
+        margin: 0;
+        font-size: 15px;
+      }
+
+      .source-empty {
+        padding: 12px 14px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .link {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .link:hover {
+        text-decoration: underline;
+      }
+
       .json-box {
         margin-top: 16px;
         border: 1px solid var(--border);
@@ -367,6 +452,9 @@
         </button>
         <button id="tab-text-btn" class="tab-btn" type="button" data-tab="text" role="tab">
           Text
+        </button>
+        <button id="tab-scrape-btn" class="tab-btn" type="button" data-tab="scrape" role="tab">
+          Web Searching
         </button>
       </div>
 
@@ -509,6 +597,83 @@
         </div>
       </section>
       </section>
+
+      <section id="tab-scrape" class="tab-content">
+      <header class="header" style="margin-top: 0">
+        <h1 class="title" style="font-size: 24px">External Resources Searcher</h1>
+        <p class="subtitle">
+          Start an async searching job, receive correlation_id, then poll status until every resource returns results.
+        </p>
+      </header>
+
+      <section class="panel">
+        <form id="scrape-form" class="form-grid">
+          <div class="field">
+            <label for="scrape-query" class="label">Naming / Query</label>
+            <input id="scrape-query" type="text" placeholder="EUROPLEX" />
+          </div>
+
+          <div class="field">
+            <label for="scrape-base-url" class="label">Base URL</label>
+            <input id="scrape-base-url" type="text" value="http://45.91.236.105:8000" />
+          </div>
+
+          <div class="field">
+            <label for="scrape-poll-interval" class="label">Poll ms</label>
+            <input id="scrape-poll-interval" type="number" min="1000" max="60000" step="500" value="3000" />
+          </div>
+
+          <div class="field">
+            <label class="label">Actions</label>
+            <div class="controls">
+              <button id="scrape-run-btn" class="btn-primary" type="submit">Start Searching</button>
+              <button id="scrape-stop-btn" class="btn-secondary" type="button" disabled>Stop Poll</button>
+              <button id="scrape-clear-btn" class="btn-secondary" type="button">Clear</button>
+            </div>
+          </div>
+
+          <div class="field" style="grid-column: 1 / -1">
+            <label class="label">Resources</label>
+            <div id="scrape-resources" class="checkbox-grid">
+              <label class="checkbox-item"><input type="checkbox" value="rkn_media" checked /> RKN Media</label>
+              <label class="checkbox-item"><input type="checkbox" value="rao_russian" checked /> RAO Russian</label>
+              <label class="checkbox-item"><input type="checkbox" value="rao_foreign" checked /> RAO Foreign</label>
+              <label class="checkbox-item"><input type="checkbox" value="google_play" checked /> Google Play</label>
+              <label class="checkbox-item"><input type="checkbox" value="rutube" checked /> Rutube</label>
+              <label class="checkbox-item"><input type="checkbox" value="yandex_video" checked /> Yandex Video</label>
+              <label class="checkbox-item"><input type="checkbox" value="yandex_music" checked /> Yandex Music</label>
+              <label class="checkbox-item"><input type="checkbox" value="kinopoisk" checked /> Kinopoisk</label>
+              <!-- <label class="checkbox-item"><input type="checkbox" value="yandex" checked /> Yandex</label> -->
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <p id="scrape-status" class="status">Ready.</p>
+
+      <section class="results" id="scrape-results" hidden>
+        <div class="result-head">
+          <h2 class="result-title">Searching Results</h2>
+          <span class="meta" id="scrape-results-meta"></span>
+        </div>
+
+        <div class="job-line" style="margin-bottom: 12px">
+          <span class="badge">correlation_id: <span id="scrape-job-id" class="mono" style="margin-left: 6px">n/a</span></span>
+          <span class="badge">status: <span id="scrape-job-status" style="margin-left: 6px">n/a</span></span>
+        </div>
+
+        <div id="scrape-results-body" class="source-grid"></div>
+
+        <div class="result-head" style="margin-top: 14px">
+          <h2 class="result-title">Raw JSON</h2>
+          <button id="scrape-copy-json-btn" class="btn-secondary" type="button">Copy JSON</button>
+        </div>
+        <div class="json-box">
+          <pre id="scrape-raw-json">No response yet.</pre>
+        </div>
+      </section>
+      </section>
+
     </main>
 
     <script>
@@ -529,8 +694,10 @@
       const copyJsonBtn = document.getElementById("copy-json-btn");
       const tabLogoBtn = document.getElementById("tab-logo-btn");
       const tabTextBtn = document.getElementById("tab-text-btn");
+      const tabScrapeBtn = document.getElementById("tab-scrape-btn");
       const tabLogo = document.getElementById("tab-logo");
       const tabText = document.getElementById("tab-text");
+      const tabScrape = document.getElementById("tab-scrape");
       const textForm = document.getElementById("text-search-form");
       const textQueryInput = document.getElementById("text-query");
       const textBaseUrlInput = document.getElementById("text-base-url");
@@ -544,6 +711,22 @@
       const textResultsBody = document.getElementById("text-results-body");
       const textRawJson = document.getElementById("text-raw-json");
       const textCopyJsonBtn = document.getElementById("text-copy-json-btn");
+      const scrapeForm = document.getElementById("scrape-form");
+      const scrapeQueryInput = document.getElementById("scrape-query");
+      const scrapeBaseUrlInput = document.getElementById("scrape-base-url");
+      const scrapePollIntervalInput = document.getElementById("scrape-poll-interval");
+      const scrapeResourcesEl = document.getElementById("scrape-resources");
+      const scrapeRunBtn = document.getElementById("scrape-run-btn");
+      const scrapeStopBtn = document.getElementById("scrape-stop-btn");
+      const scrapeClearBtn = document.getElementById("scrape-clear-btn");
+      const scrapeStatusEl = document.getElementById("scrape-status");
+      const scrapeResultsSection = document.getElementById("scrape-results");
+      const scrapeResultsMeta = document.getElementById("scrape-results-meta");
+      const scrapeResultsBody = document.getElementById("scrape-results-body");
+      const scrapeJobIdEl = document.getElementById("scrape-job-id");
+      const scrapeJobStatusEl = document.getElementById("scrape-job-status");
+      const scrapeRawJson = document.getElementById("scrape-raw-json");
+      const scrapeCopyJsonBtn = document.getElementById("scrape-copy-json-btn");
       const hoverPreview = document.createElement("div");
       hoverPreview.className = "hover-preview";
       hoverPreview.hidden = true;
@@ -555,6 +738,12 @@
       let selectedFile = null;
       let latestResponseText = "";
       let latestTextResponseText = "";
+      let latestScrapeResponseText = "";
+      let scrapePollTimer = null;
+      let scrapePollAbortController = null;
+      let scrapeCorrelationId = "";
+      let scrapeRequestedResources = [];
+      let scrapeStartedAt = 0;
 
       function setStatus(text, type = "") {
         statusEl.className = "status" + (type ? " " + type : "");
@@ -566,15 +755,26 @@
         textStatusEl.textContent = text;
       }
 
+      function setScrapeStatus(text, type = "") {
+        scrapeStatusEl.className = "status" + (type ? " " + type : "");
+        scrapeStatusEl.textContent = text;
+      }
+
       function activateTab(tabName) {
-        const isLogo = tabName === "logo";
-        tabLogo.classList.toggle("active", isLogo);
-        tabText.classList.toggle("active", !isLogo);
-        tabLogoBtn.classList.toggle("active", isLogo);
-        tabTextBtn.classList.toggle("active", !isLogo);
-        tabLogoBtn.setAttribute("aria-selected", isLogo ? "true" : "false");
-        tabTextBtn.setAttribute("aria-selected", isLogo ? "false" : "true");
-        if (!isLogo) hideHoverPreview();
+        const tabs = [
+          { name: "logo", panel: tabLogo, button: tabLogoBtn },
+          { name: "text", panel: tabText, button: tabTextBtn },
+          { name: "scrape", panel: tabScrape, button: tabScrapeBtn }
+        ];
+
+        for (const tab of tabs) {
+          const isActive = tab.name === tabName;
+          tab.panel.classList.toggle("active", isActive);
+          tab.button.classList.toggle("active", isActive);
+          tab.button.setAttribute("aria-selected", isActive ? "true" : "false");
+        }
+
+        if (tabName !== "logo") hideHoverPreview();
       }
 
       function clearPreview() {
@@ -672,6 +872,278 @@
       function syncBaseUrl(source, target) {
         target.value = source.value;
       }
+
+      function syncBaseUrls(source, targets) {
+        for (const target of targets) {
+          if (target !== source) target.value = source.value;
+        }
+      }
+
+      function parsePollInterval() {
+        const value = Number.parseInt(scrapePollIntervalInput.value, 10);
+        if (!Number.isFinite(value)) return 3000;
+        return Math.min(60000, Math.max(1000, value));
+      }
+
+      function getSelectedScrapeResources() {
+        return Array.from(scrapeResourcesEl.querySelectorAll('input[type="checkbox"]:checked')).map(
+          (input) => input.value
+        );
+      }
+
+      function formatResourceName(resource) {
+        return String(resource || "unknown")
+          .split("_")
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(" ");
+      }
+
+      function setScrapeRunning(isRunning) {
+        scrapeRunBtn.disabled = isRunning;
+        scrapeStopBtn.disabled = !isRunning;
+      }
+
+      function stopScrapePolling(statusText = "Polling stopped.", type = "") {
+        if (scrapePollTimer) {
+          window.clearTimeout(scrapePollTimer);
+          scrapePollTimer = null;
+        }
+        if (scrapePollAbortController) {
+          scrapePollAbortController.abort();
+          scrapePollAbortController = null;
+        }
+        setScrapeRunning(false);
+        if (statusText) setScrapeStatus(statusText, type);
+      }
+
+      function renderScrapeResults(payload) {
+        const batches = Array.isArray(payload.response) ? payload.response : [];
+        const statusValue = payload.status || "unknown";
+        const statusKey = String(statusValue).toLowerCase();
+        const batchBySource = new Map(
+          batches.map((batch) => [String(batch.source || "unknown"), batch])
+        );
+        const displaySources = scrapeRequestedResources.length
+          ? scrapeRequestedResources
+          : batches.map((batch) => String(batch.source || "unknown"));
+
+        scrapeResultsBody.innerHTML = "";
+
+        if (!displaySources.length) {
+          scrapeResultsBody.innerHTML = '<div class="source-card"><p class="source-empty">No resource results yet.</p></div>';
+        }
+
+        for (const source of displaySources) {
+          const batch = batchBySource.get(source);
+          const sourceHasResponse = Boolean(batch);
+          const items = batch && Array.isArray(batch.results) ? batch.results : [];
+          const card = document.createElement("article");
+          card.className = "source-card";
+
+          const rows = items
+            .map((item, index) => {
+              const title = item.title || "Untitled";
+              const url = item.url || "";
+              const snippet = item.snippet || "";
+              const titleHtml = url
+                ? `<a class="link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a>`
+                : escapeHtml(title);
+
+              return `
+                <tr>
+                  <td>${index + 1}</td>
+                  <td>${titleHtml}</td>
+                  <td class="mono">${url ? escapeHtml(url) : "n/a"}</td>
+                  <td>${escapeHtml(snippet)}</td>
+                </tr>
+              `;
+            })
+            .join("");
+
+          const emptyText = sourceHasResponse
+            ? "Resource returned no items."
+            : statusKey === "completed" || statusKey === "failed"
+              ? "Nothing received from this resource."
+              : "Waiting for this resource...";
+
+          card.innerHTML = `
+            <div class="source-card-head">
+              <h3 class="source-title">${escapeHtml(formatResourceName(source))}</h3>
+              <span class="meta">${sourceHasResponse ? "received" : "pending"} | items=${items.length}</span>
+            </div>
+            ${
+              items.length
+                ? `<div class="table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Title</th>
+                          <th>URL</th>
+                          <th>Snippet</th>
+                        </tr>
+                      </thead>
+                      <tbody>${rows}</tbody>
+                    </table>
+                  </div>`
+                : `<p class="source-empty">${escapeHtml(emptyText)}</p>`
+            }
+          `;
+          scrapeResultsBody.appendChild(card);
+        }
+
+        const totalItems = batches.reduce((sum, batch) => {
+          return sum + (Array.isArray(batch.results) ? batch.results.length : 0);
+        }, 0);
+        const elapsed = scrapeStartedAt ? Math.round((Date.now() - scrapeStartedAt) / 1000) : 0;
+
+        scrapeJobIdEl.textContent = payload.correlation_id || scrapeCorrelationId || "n/a";
+        scrapeJobStatusEl.textContent = statusValue;
+        scrapeResultsMeta.textContent = `requested=${displaySources.length} | received=${batches.length} | items=${totalItems} | elapsed=${elapsed}s`;
+        scrapeResultsSection.hidden = false;
+      }
+
+      async function startScraping() {
+        const naming = scrapeQueryInput.value.trim();
+        if (!naming) {
+          setScrapeStatus("Please enter naming/query first.", "error");
+          return;
+        }
+
+        const baseUrl = scrapeBaseUrlInput.value.trim().replace(/\/+$/, "");
+        if (!baseUrl) {
+          setScrapeStatus("Base URL is required.", "error");
+          return;
+        }
+
+        const resources = getSelectedScrapeResources();
+        if (!resources.length) {
+          setScrapeStatus("Please select at least one resource.", "error");
+          return;
+        }
+
+        stopScrapePolling("", "");
+        scrapeRequestedResources = resources;
+        const pollInterval = parsePollInterval();
+        scrapePollIntervalInput.value = String(pollInterval);
+        scrapeStartedAt = Date.now();
+        scrapeCorrelationId = "";
+        latestScrapeResponseText = "";
+        scrapeRawJson.textContent = "Starting job...";
+        scrapeResultsBody.innerHTML = "";
+        scrapeResultsMeta.textContent = "";
+        scrapeJobIdEl.textContent = "n/a";
+        scrapeJobStatusEl.textContent = "accepted";
+        scrapeResultsSection.hidden = false;
+        setScrapeRunning(true);
+
+        const endpoint = `${baseUrl}/api/v1/webhooks/stage2-results/start`;
+        const requestPayload = { naming, resources };
+        setScrapeStatus(`Starting searching job at ${endpoint} ...`);
+
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestPayload)
+          });
+
+          const responseText = await response.text();
+          latestScrapeResponseText = responseText;
+          scrapeRawJson.textContent = responseText || "Empty response";
+
+          if (!response.ok) {
+            setScrapeRunning(false);
+            setScrapeStatus(`Start request failed: HTTP ${response.status}. Check raw JSON for details.`, "error");
+            scrapeResultsMeta.textContent = `http_status=${response.status}`;
+            return;
+          }
+
+          let payload;
+          try {
+            payload = JSON.parse(responseText);
+          } catch {
+            setScrapeRunning(false);
+            setScrapeStatus("Start response is not valid JSON.", "error");
+            return;
+          }
+
+          scrapeCorrelationId = String(payload.correlation_id || payload.id || payload.job_id || "");
+          if (!scrapeCorrelationId) {
+            setScrapeRunning(false);
+            setScrapeStatus("Start response does not contain correlation_id.", "error");
+            return;
+          }
+
+          scrapeJobIdEl.textContent = scrapeCorrelationId;
+          scrapeJobStatusEl.textContent = payload.status || "accepted";
+          setScrapeStatus(`Job accepted. correlation_id=${scrapeCorrelationId}. Polling every ${pollInterval} ms...`, "ok");
+          await pollScrapeStatus();
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Unknown error";
+          setScrapeRunning(false);
+          setScrapeStatus(`Network or CORS error while starting searching: ${message}`, "error");
+        }
+      }
+
+      async function pollScrapeStatus() {
+        if (!scrapeCorrelationId) return;
+
+        const baseUrl = scrapeBaseUrlInput.value.trim().replace(/\/+$/, "");
+        const endpoint = `${baseUrl}/api/v1/webhooks/stage2-results/${encodeURIComponent(scrapeCorrelationId)}`;
+        scrapePollAbortController = new AbortController();
+
+        try {
+          const response = await fetch(endpoint, {
+            method: "GET",
+            signal: scrapePollAbortController.signal
+          });
+
+          const responseText = await response.text();
+          latestScrapeResponseText = responseText;
+          scrapeRawJson.textContent = responseText || "Empty response";
+
+          if (!response.ok) {
+            stopScrapePolling(`Polling failed: HTTP ${response.status}. Check raw JSON for details.`, "error");
+            scrapeResultsMeta.textContent = `http_status=${response.status}`;
+            return;
+          }
+
+          let payload;
+          try {
+            payload = JSON.parse(responseText);
+          } catch {
+            stopScrapePolling("Polling response is not valid JSON.", "error");
+            return;
+          }
+
+          renderScrapeResults(payload);
+
+          const statusValue = String(payload.status || "").toLowerCase();
+          if (statusValue === "completed") {
+            stopScrapePolling("Searching completed successfully.", "ok");
+            return;
+          }
+          if (statusValue === "failed") {
+            stopScrapePolling("Searching failed. Check raw JSON for details.", "error");
+            return;
+          }
+
+          const pollInterval = parsePollInterval();
+          setScrapeRunning(true);
+          setScrapeStatus(`Job ${statusValue || "in_progress"}. Polling again in ${pollInterval} ms...`);
+          scrapePollTimer = window.setTimeout(pollScrapeStatus, pollInterval);
+        } catch (error) {
+          if (error instanceof DOMException && error.name === "AbortError") return;
+          const message = error instanceof Error ? error.message : "Unknown error";
+          stopScrapePolling(`Network or CORS error while polling: ${message}`, "error");
+        } finally {
+          scrapePollAbortController = null;
+        }
+      }
+
 
       function showHoverPreview(url, logoPath, event) {
         hoverPreviewImg.src = url;
@@ -862,11 +1334,18 @@
         runTextSearch();
       });
 
+      scrapeForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        startScraping();
+      });
+
       tabLogoBtn.addEventListener("click", () => activateTab("logo"));
       tabTextBtn.addEventListener("click", () => activateTab("text"));
+      tabScrapeBtn.addEventListener("click", () => activateTab("scrape"));
 
-      baseUrlInput.addEventListener("change", () => syncBaseUrl(baseUrlInput, textBaseUrlInput));
-      textBaseUrlInput.addEventListener("change", () => syncBaseUrl(textBaseUrlInput, baseUrlInput));
+      baseUrlInput.addEventListener("change", () => syncBaseUrls(baseUrlInput, [textBaseUrlInput, scrapeBaseUrlInput]));
+      textBaseUrlInput.addEventListener("change", () => syncBaseUrls(textBaseUrlInput, [baseUrlInput, scrapeBaseUrlInput]));
+      scrapeBaseUrlInput.addEventListener("change", () => syncBaseUrls(scrapeBaseUrlInput, [baseUrlInput, textBaseUrlInput]));
 
       fileInput.addEventListener("change", () => {
         const file = fileInput.files && fileInput.files[0];
@@ -937,6 +1416,27 @@
         setTextStatus("Ready.");
       });
 
+      scrapeStopBtn.addEventListener("click", () => {
+        stopScrapePolling("Polling stopped by user.");
+      });
+
+      scrapeClearBtn.addEventListener("click", () => {
+        stopScrapePolling("", "");
+        scrapeQueryInput.value = "";
+        scrapePollIntervalInput.value = "3000";
+        latestScrapeResponseText = "";
+        scrapeCorrelationId = "";
+        scrapeRequestedResources = [];
+        scrapeStartedAt = 0;
+        scrapeRawJson.textContent = "No response yet.";
+        scrapeResultsBody.innerHTML = "";
+        scrapeResultsMeta.textContent = "";
+        scrapeJobIdEl.textContent = "n/a";
+        scrapeJobStatusEl.textContent = "n/a";
+        scrapeResultsSection.hidden = true;
+        setScrapeStatus("Ready.");
+      });
+
       copyJsonBtn.addEventListener("click", async () => {
         if (!latestResponseText) {
           setStatus("Nothing to copy yet.", "error");
@@ -960,6 +1460,19 @@
           setTextStatus("Raw JSON copied to clipboard.", "ok");
         } catch {
           setTextStatus("Could not access clipboard in this browser context.", "error");
+        }
+      });
+
+      scrapeCopyJsonBtn.addEventListener("click", async () => {
+        if (!latestScrapeResponseText) {
+          setScrapeStatus("Nothing to copy yet.", "error");
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(latestScrapeResponseText);
+          setScrapeStatus("Raw JSON copied to clipboard.", "ok");
+        } catch {
+          setScrapeStatus("Could not access clipboard in this browser context.", "error");
         }
       });
 
